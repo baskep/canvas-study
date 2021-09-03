@@ -1,0 +1,116 @@
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Untitled Document</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    #canvas {
+      border: 1px solid lightgray;
+      box-shadow: rgba(0, 0, 0, 0.3) 3px 3px 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+    <span class="label">当前坐标为：</span>
+    <span class="text">0, 0</span>
+  </div>
+  <canvas id="canvas" width="462" height="500"></canvas>
+
+  <script>
+    /** @type {HTMLCanvasElement} */
+    const canvas = document.getElementById('canvas')
+    const context = canvas.getContext('2d')
+    const gridCount = 10
+    const canvasWidth = canvas.width
+    const canvasHeight = canvas.height
+    const img = new Image()
+
+    // 画网格
+    function drawGrid() {
+      const singelHeight = Math.floor(canvasHeight / 10)
+      const singelWidth = Math.floor(canvasWidth / 10)
+
+      context.lineWidth = 1
+      context.strokeStyle = 'lightgray'
+
+      for (let i = 1; i < gridCount; i++) {
+        context.beginPath()
+        context.moveTo(i * singelWidth, 0)
+        context.lineTo(i * singelWidth, canvasHeight)
+        context.stroke()
+        context.closePath()
+      }
+
+      for (let i = 0; i < gridCount; i++) {
+        context.beginPath()
+        context.moveTo(0, i * singelHeight)
+        context.lineTo(canvasWidth, i * singelHeight)
+        context.stroke()
+        context.closePath()
+      }
+    }
+
+    // 分割线
+    function drawDivideLine(clientX, clientY) {
+      context.lineWidth = 1
+      context.strokeStyle = 'rgba(0, 0, 230, 0.8)'
+      context.beginPath()
+      context.moveTo(0, clientY - 22)
+      context.lineTo(canvasWidth, clientY - 22)
+      context.stroke()
+
+      context.moveTo(clientX, 0)
+      context.lineTo(clientX, canvasHeight)
+      context.stroke()
+      context.closePath()
+    }
+
+    // 更新文本内容
+    function updateTextContet(clientX, clientY) {
+      document.querySelector('.text').innerHTML = `${clientX}, ${clientY}`
+    }
+
+    // 绑定鼠标移动事件
+    function bindEvent() {
+      canvas.addEventListener('mousemove', (e) => {
+        const { clientX, clientY } = e
+        init()
+        drawImage()
+        drawDivideLine(clientX, clientY)
+        updateTextContet(clientX, clientY)
+      })
+    }
+
+    // 画图
+    function drawImage() {
+      context.drawImage(img, 0, 0, canvasWidth, img.height)
+    }
+
+    // 清除画布内容
+    function clearRect() {
+      context.clearRect(0, 0, canvasWidth, canvasHeight)
+    }
+
+    // 初始化
+    function init() {
+      clearRect()
+      drawGrid()
+    }
+
+    init()
+    bindEvent()
+    img.src = './images/running-sprite-sheet.png'
+    img.onload = function () {
+      drawImage()
+    }
+  </script>
+</body>
+
+</html>
