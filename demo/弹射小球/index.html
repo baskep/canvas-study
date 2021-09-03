@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    #canvas {
+      border: 1px solid lightgray;
+      box-shadow: rgba(0, 0, 0, 0.3) 3px 3px 10px;
+    }
+
+    .controller {
+      position: absolute;
+      left: 50px;
+      top: 50px;
+      background: rgba(0, 0, 0, 0.3);
+      border: thin solid rgba(0, 0, 0, 0.6);
+      color: #eeeeee;
+      cursor: pointer;
+      box-shadow: rgb(0 0 0 / 50%) 5px 5px 20px;
+    }
+
+    button {
+      padding: 20px;
+      border: 0;
+      background: transparent;
+      color: #fff;
+      font-size: 2.5em;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="controller">
+    <button id="btn">启动</button>
+  </div>
+  <canvas id="canvas" width="800" height="500"></canvas>
+
+  <script>
+    /** @type {HTMLCanvasElement} */
+    const canvas = document.getElementById('canvas')
+    const context = canvas.getContext('2d')
+    const canvasWidth = canvas.width
+    const canvasHeight = canvas.height
+    const gridCount = 20
+    const ballCount = 100
+    const balls = []
+    let startStatus = false
+
+    function drawGrid() {
+      const singelHeight = Math.floor(canvasHeight / gridCount)
+      const singelWidth = Math.floor(canvasWidth / gridCount)
+
+      context.lineWidth = 1
+      context.strokeStyle = 'lightgray'
+
+      for (let i = 1; i < gridCount; i++) {
+        context.beginPath()
+        context.moveTo(i * singelWidth, 0)
+        context.lineTo(i * singelWidth, canvasHeight)
+        context.stroke()
+        context.closePath()
+      }
+
+      for (let i = 0; i < gridCount; i++) {
+        context.beginPath()
+        context.moveTo(0, i * singelHeight)
+        context.lineTo(canvasWidth, i * singelHeight)
+        context.stroke()
+        context.closePath()
+      }
+    }
+
+    function bindAnimation() {
+      console.log(startStatus)
+      if (startStatus) {
+        context.clearRect(0, 0, canvasWidth, canvasHeight)
+        drawGrid()
+        for (let i = 0; i < balls.length; i++) {
+          console.log(2)
+          const {
+            x,
+            y,
+            offsetX,
+            offsetY,
+            radius,
+            color
+          } = balls[i]
+          context.beginPath()
+          context.arc(x, y, radius, 0, Math.PI * 2)
+          context.fillStyle = color
+          context.fill()
+          context.closePath()
+          balls[i].x = x + offsetX
+          balls[i].y = y + offsetY
+        }
+      }
+      // window.requestAnimationFrame(bindAnimation)
+    }
+
+    function bindAnimationEvent() {
+      window.requestAnimationFrame(bindAnimation)
+    }
+
+    function generatorBallObj() {
+      for (let i = 0; i < ballCount; i++) {
+        balls[i] = {
+          x: 0,
+          y: 0,
+          offsetX: Math.random() * 3,
+          offsetY: Math.random() * 3,
+          radius: Math.random() * 50,
+          color: 'rgba(' + (Math.random() * 255).toFixed(0) + ',' +
+            (Math.random() * 255).toFixed(0) + ',' +
+            (Math.random() * 255).toFixed(0) + ',1.0)'
+        }
+      }
+      bindAnimationEvent()
+    }
+
+    function bindEvent() {
+      document.querySelector('#btn').addEventListener('click', () => {
+        startStatus = !startStatus
+      })
+    }
+
+    function init() {
+      drawGrid()
+      generatorBallObj()
+      bindEvent()
+    }
+
+    init()
+  </script>
+</body>
+
+</html>
