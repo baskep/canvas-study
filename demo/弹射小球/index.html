@@ -41,7 +41,7 @@
 <body>
 
   <div class="controller">
-    <button id="btn">启动</button>
+    <button id="btn">开始</button>
   </div>
   <canvas id="canvas" width="800" height="500"></canvas>
 
@@ -56,13 +56,12 @@
     const balls = []
     let startStatus = false
 
+    // 画网格
     function drawGrid() {
       const singelHeight = Math.floor(canvasHeight / gridCount)
       const singelWidth = Math.floor(canvasWidth / gridCount)
-
       context.lineWidth = 1
       context.strokeStyle = 'lightgray'
-
       for (let i = 1; i < gridCount; i++) {
         context.beginPath()
         context.moveTo(i * singelWidth, 0)
@@ -70,7 +69,6 @@
         context.stroke()
         context.closePath()
       }
-
       for (let i = 0; i < gridCount; i++) {
         context.beginPath()
         context.moveTo(0, i * singelHeight)
@@ -80,42 +78,50 @@
       }
     }
 
+    // 判断球的方向
+    function adjustPosition(ball) {
+      if (
+        ball.x + ball.offsetX + ball.radius > canvasWidth ||
+        ball.x - ball.radius + ball.offsetX < 0) {
+        ball.offsetX = -ball.offsetX
+      }
+      if (ball.y + ball.offsetY + ball.radius > canvasHeight ||
+        ball.y - ball.radius + ball.offsetY < 0) {
+        ball.offsetY = -ball.offsetY
+      }
+      ball.x += ball.offsetX
+      ball.y += ball.offsetY
+    }
+
+    // 绑定动画
     function bindAnimation() {
-      console.log(startStatus)
       if (startStatus) {
         context.clearRect(0, 0, canvasWidth, canvasHeight)
         drawGrid()
         for (let i = 0; i < balls.length; i++) {
-          console.log(2)
-          const {
-            x,
-            y,
-            offsetX,
-            offsetY,
-            radius,
-            color
-          } = balls[i]
+          const { x, y, offsetX, offsetY, radius, color } = balls[i]
           context.beginPath()
           context.arc(x, y, radius, 0, Math.PI * 2)
           context.fillStyle = color
           context.fill()
           context.closePath()
-          balls[i].x = x + offsetX
-          balls[i].y = y + offsetY
+          adjustPosition(balls[i])
+
         }
       }
-      // window.requestAnimationFrame(bindAnimation)
+      window.requestAnimationFrame(bindAnimation)
     }
 
     function bindAnimationEvent() {
       window.requestAnimationFrame(bindAnimation)
     }
 
+    // 生成小球对象
     function generatorBallObj() {
       for (let i = 0; i < ballCount; i++) {
         balls[i] = {
-          x: 0,
-          y: 0,
+          x: 100,
+          y: 100,
           offsetX: Math.random() * 3,
           offsetY: Math.random() * 3,
           radius: Math.random() * 50,
@@ -127,9 +133,15 @@
       bindAnimationEvent()
     }
 
+    // 绑定事件
     function bindEvent() {
       document.querySelector('#btn').addEventListener('click', () => {
         startStatus = !startStatus
+        if (startStatus) {
+          document.querySelector('#btn').innerHTML = '暂停'
+        } else {
+          document.querySelector('#btn').innerHTML = '开始'
+        }
       })
     }
 
