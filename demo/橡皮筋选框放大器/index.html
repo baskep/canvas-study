@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>橡皮筋选框放大器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    #canvas {
+      border: 1px solid lightgray;
+      box-shadow: rgba(0, 0, 0, 0.3) 3px 3px 10px;
+    }
+
+    button {
+      margin: 10px;
+    }
+
+    #select-rect {
+      position: absolute;
+      top: 0;
+      left: 0;
+      border: 2px solid lightblue;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="select-rect"></div>
+  <canvas id="canvas" width="800" height="500"></canvas>
+  <button id="btn">重置</button>
+  <script>
+    /** @type {HTMLCanvasElement} */
+    const canvas = document.querySelector('#canvas')
+    const ele = document.querySelector('#select-rect')
+    const btn = document.querySelector('#btn')
+    const context = canvas.getContext('2d')
+    const canvasWidth = canvas.width
+    const canvasHeight = canvas.height
+    const img = new Image()
+
+    const coordinate = {
+      startX: 0,
+      startY: 0
+    }
+
+    let status = false
+
+    // 画基础背景
+    function drawImage() {
+      img.src = './images/arch.png'
+      img.onload = function () {
+        context.drawImage(img, 0, 0, canvasWidth, canvasHeight)
+      }
+    }
+
+    // 控制选择框显示隐藏
+    function showSelectRect(isShow) {
+      ele.style.display = isShow ? 'block' : 'none'
+    }
+
+    // 更新选择框信息
+    function updateSelectRect(left, top, width, height) {
+      ele.style.left = left + 'px'
+      ele.style.top = top + 'px'
+      ele.style.width = width + 'px'
+      ele.style.height = height + 'px'
+    }
+
+    // 绑定鼠标事件
+    function bindEvent() {
+      canvas.addEventListener('mousedown', (e) => {
+        const { clientX, clientY } = e
+        coordinate.startX = clientX
+        coordinate.startY = clientY
+        status = true
+        showSelectRect(true)
+      })
+
+      canvas.addEventListener('mousemove', (e) => {
+        const { clientX, clientY } = e
+        const { startX, startY } = coordinate
+        if (status) {
+          const left = clientX < startX ? clientX : startX
+          const top = clientY < startY ? clientY : startY
+          const width = Math.abs(clientX - startX)
+          const height = Math.abs(clientY - startY)
+          updateSelectRect(left, top, width, height)
+        }
+      })
+
+      window.addEventListener('mouseup', (e) => {
+        const { clientX, clientY } = e
+        const { startX, startY } = coordinate
+        const left = clientX < startX ? clientX : startX
+        const top = clientY < startY ? clientY : startY
+        status = false
+        coordinate.startX = 0
+        coordinate.startY = 0
+        showSelectRect(false)
+        updateSelectRect(0,0,0,0)
+        context.drawImage(canvas, left, top, Math.abs(clientX - startX), Math.abs(clientY - startY), 0, 0,
+          canvasWidth, canvasHeight)
+      })
+
+      btn.addEventListener('click', () => {
+        context.clearRect(0, 0, canvasWidth, canvasHeight)
+        context.drawImage(img, 0, 0, canvasWidth, canvasHeight)
+      })
+    }
+
+    function init() {
+      drawImage()
+      bindEvent()
+    }
+
+    init()
+  </script>
+</body>
+
+</html>
