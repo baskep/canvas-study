@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>放大镜</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    #origin-canvas {
+      float: left;
+      border: 1px solid lightgray;
+      box-shadow: rgba(0, 0, 0, 0.3) 3px 3px 10px;
+    }
+
+    #target-canvas {
+      display: none;
+      float: left;
+      margin-left: 20px;
+    }
+
+    .move-rect {
+      display: none;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 160px;
+      height: 200px;
+      background: url('./images/move-react.png') repeat;
+      cursor: move;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="origin-canvas" width="800" height="500"></canvas>
+  <div class="move-rect"></div>
+  <canvas id="target-canvas" width="400" height="500"></canvas>
+  <script>
+    /** @type {HTMLCanvasElement} */
+    const originCanvas = document.querySelector('#origin-canvas')
+    const targetCanvas = document.querySelector('#target-canvas')
+    const originContext = originCanvas.getContext('2d')
+    const targetContext = targetCanvas.getContext('2d')
+    const moveRect = document.querySelector('.move-rect')
+    const orginCanvasWidth = originCanvas.width
+    const originCanvasHeight = originCanvas.height
+    const targetCanvasWidth = targetCanvas.width
+    const targetCanvasHeight = targetCanvas.height
+    const img = new Image()
+
+    // 画基础背景
+    function drawImage() {
+      img.src = './images/arch.png'
+      img.onload = function () {
+        originContext.drawImage(img, 0, 0, orginCanvasWidth, originCanvasHeight)
+      }
+    }
+
+    // 更新选择框状态
+    function updateMoveRectShow(isShow) {
+      moveRect.style.display = isShow ? 'block' : 'none'
+    }
+
+    // 更新目标canvas的显示状态
+    function updateTargetCanvasShow(isShow) {
+      targetCanvas.style.display = isShow ? 'block' : 'none'
+    }
+
+    // 更新选择框位置
+    function updateMoveRectPosition({ left, top }) {
+      moveRect.style.left = left + 'px'
+      moveRect.style.top = top + 'px'
+    }
+
+    // 更新目标canvas的图像
+    function drawTargetImage({ left, top }) {
+      console.log(targetCanvasWidth)
+      targetContext.drawImage(originCanvas, left, top, 160, 200, 0, 0, targetCanvasWidth, targetCanvasHeight)
+    }
+
+    // 计算选择框位置
+    function computeMoveRectPosition(e) {
+      const position = {
+        left: 0,
+        top: 0,
+      }
+      const { clientX, clientY } = e
+      position.left = clientX - 80
+      position.top = clientY - 100
+      if (clientX - 80 < 0) {
+        position.left = 0
+      } else if (clientX + 80 > orginCanvasWidth) {
+        position.left = orginCanvasWidth - 160
+      }
+      if (clientY - 100 < 0) {
+        position.top = 0
+      } else if (clientY + 100 > originCanvasHeight) {
+        position.top = originCanvasHeight - 200
+      }
+      updateMoveRectPosition(position)
+      targetContext.clearRect(0, 0, targetCanvasWidth, targetCanvasHeight)
+      drawTargetImage(position)
+    }
+
+    // 绑定事件
+    function bindEvent() {
+      originCanvas.addEventListener('mouseenter', (e) => {
+        updateMoveRectShow(true)
+        updateTargetCanvasShow(true)
+      })
+      moveRect.addEventListener('mousemove', (e) => {
+        computeMoveRectPosition(e)
+      })
+      originCanvas.addEventListener('mousemove', (e) => {
+        computeMoveRectPosition(e)
+      })
+    }
+
+    function init() {
+      drawImage()
+      bindEvent()
+    }
+
+    init()
+  </script>
+</body>
+
+</html>
