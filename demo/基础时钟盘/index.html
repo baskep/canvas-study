@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>基础时钟盘</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    #canvas {
+      border: 1px solid lightgray;
+      box-shadow: rgba(0, 0, 0, 0.3) 3px 3px 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas" width="800" height="500"></canvas>
+  <script>
+    /** @type {HTMLCanvasElement} */
+    const canvas = document.getElementById('canvas')
+    const context = canvas.getContext('2d')
+    const canvasWidth = canvas.width
+    const canvasHeight = canvas.height
+
+    function drawArc() {
+      context.beginPath()
+      context.moveTo(canvasWidth / 2, canvasHeight / 2)
+      context.arc(canvasWidth / 2, canvasHeight / 2, 100, 0, Math.PI * 2)
+      context.stroke()
+      context.closePath()
+    }
+
+    function drawHandScale() {
+      context.beginPath()
+      context.lineWidth = 3
+      for (var i = 0; i < 12; i++) {
+        context.moveTo(canvasWidth / 2, canvasHeight / 2)
+        context.arc(canvasWidth / 2, canvasHeight / 2, 120, 30 * i * Math.PI / 180, 30 * (i + 1) * Math.PI / 180, false)
+      }
+      context.stroke()
+      context.closePath()
+
+      context.beginPath()
+      context.arc(canvasWidth / 2, canvasHeight / 2, 100, 0, Math.PI * 2)
+      context.fillStyle = '#ffffff'
+      context.fill()
+      context.closePath()
+    }
+
+    function drawMinuteScale() {
+      context.beginPath()
+      for (let i = 0; i < 60; i++) {
+        context.moveTo(canvasWidth / 2, canvasHeight / 2)
+        context.arc(canvasWidth / 2, canvasHeight / 2, 120, 6 * i * Math.PI / 180, (6 * i + 1) * Math.PI / 180)
+      }
+      context.stroke()
+      context.closePath()
+
+      context.beginPath()
+      context.arc(canvasWidth / 2, canvasHeight / 2, 110, 0, Math.PI * 2)
+      context.fillStyle = '#ffffff'
+      context.fill()
+      context.closePath()
+    }
+
+    function drawHand() {
+      const date = new Date()
+      const hours = date.getHours()
+      context.beginPath()
+      context.lineWidth = 3
+      context.moveTo(canvasWidth / 2, canvasHeight / 2)
+      context.arc(canvasWidth / 2, canvasHeight / 2, 70, (-90 + hours * 30) * Math.PI / 180, (-90 + hours * 30) * Math.PI / 180, false)
+      context.stroke()
+      context.closePath()
+    }
+
+    function init() {
+      drawArc()
+      drawMinuteScale()
+      drawHandScale()
+      drawHand()
+    }
+
+    init()
+  </script>
+</body>
+
+</html>
