@@ -28,12 +28,35 @@
     const canvasWidth = canvas.width
     const canvasHeight = canvas.height
 
-    function drawArc() {
+    function drawOutArc() {
+      context.clearRect(0, 0, canvasWidth, canvasHeight)
+      context.save()
       context.beginPath()
-      context.moveTo(canvasWidth / 2, canvasHeight / 2)
-      context.arc(canvasWidth / 2, canvasHeight / 2, 100, 0, Math.PI * 2)
+      context.shadowColor = 'rgba(0,0,0,0.7)'
+      context.shadowOffsetX = 3
+      context.shadowOffsetY = 3
+      context.shadowBlur = 6
+      context.strokeStyle = 'rgba(100, 140, 230, 0.5)'
+      context.fillStyle = 'rgba(100, 140, 230, 0.5)'
+      context.translate(canvasWidth / 2, canvasHeight / 2)
+      context.arc(0, 0, 120, 0, Math.PI * 2)
       context.stroke()
+      context.fill()
       context.closePath()
+      context.restore()
+    }
+
+    function drawArc() {
+      context.save()
+      context.beginPath()
+      context.translate(canvasWidth / 2, canvasHeight / 2)
+      context.arc(0, 0, 100, 0, Math.PI * 2)
+      context.strokeStyle = 'rgba(100, 140, 230, 0.5)'
+      context.fillStyle = '#ffffff'
+      context.stroke()
+      context.fill()
+      context.closePath()
+      context.restore()
     }
 
     function drawHandScale() {
@@ -54,40 +77,90 @@
     }
 
     function drawMinuteScale() {
+      context.save()
       context.beginPath()
+      context.translate(canvasWidth / 2, canvasHeight / 2)
       for (let i = 0; i < 60; i++) {
-        context.moveTo(canvasWidth / 2, canvasHeight / 2)
-        context.arc(canvasWidth / 2, canvasHeight / 2, 120, 6 * i * Math.PI / 180, (6 * i + 1) * Math.PI / 180)
+        context.arc(0, 0, 120, 6 * i * Math.PI / 180, (6 * i + 1) * Math.PI / 180)
       }
       context.stroke()
       context.closePath()
 
       context.beginPath()
-      context.arc(canvasWidth / 2, canvasHeight / 2, 110, 0, Math.PI * 2)
+      context.arc(0, 0, 110, 0, Math.PI * 2)
       context.fillStyle = '#ffffff'
       context.fill()
       context.closePath()
+      context.stroke()
     }
 
     function drawHand() {
       const date = new Date()
       const hours = date.getHours()
       context.beginPath()
-      context.lineWidth = 3
+      context.lineWidth = 2
       context.moveTo(canvasWidth / 2, canvasHeight / 2)
-      context.arc(canvasWidth / 2, canvasHeight / 2, 70, (-90 + hours * 30) * Math.PI / 180, (-90 + hours * 30) * Math.PI / 180, false)
+      context.arc(canvasWidth / 2, canvasHeight / 2, 60, (-90 + hours * 30) * Math.PI / 180, (-90 + hours * 30) * Math
+        .PI / 180, false)
       context.stroke()
       context.closePath()
     }
 
-    function init() {
-      drawArc()
-      drawMinuteScale()
-      drawHandScale()
-      drawHand()
+    function drawMinuteHand() {
+      const date = new Date()
+      const minuTes = date.getMinutes()
+      context.beginPath()
+      context.lineWidth = 2
+      context.moveTo(canvasWidth / 2, canvasHeight / 2)
+      context.arc(canvasWidth / 2, canvasHeight / 2, 70, (-90 + minuTes * 6) * Math.PI / 180, (-90 + minuTes * 6) * Math
+        .PI / 180, false)
+      context.stroke()
+      context.closePath()
     }
 
-    init()
+    function drawSecondHand() {
+      const date = new Date()
+      const seconds = date.getSeconds()
+      context.beginPath()
+      context.lineWidth = 1
+      context.moveTo(canvasWidth / 2, canvasHeight / 2)
+      context.arc(canvasWidth / 2, canvasHeight / 2, 80, (-90 + seconds * 6) * Math.PI / 180, (-90 + seconds * 6) * Math
+        .PI / 180, false)
+      context.stroke()
+      context.closePath()
+    }
+
+    function drawNumHand() {
+      // 每小时的弧度值
+      const singelArc = 2 * Math.PI / 12
+      context.save()
+      context.beginPath()
+      context.translate(canvasWidth / 2, canvasHeight / 2)
+      for (let i = 1; i < 13; i++) {
+        const sin = Math.sin(singelArc * i)
+        const cos = -Math.cos(singelArc * i)
+        context.fillStyle = 'black'
+        context.font = 'noraml 30px Calibri'
+        context.textAlign = 'center'
+        context.textBaseline = 'middle'
+        context.fillText(i, 90 * sin, 90 * cos)
+      }
+      context.closePath()
+      context.restore()
+    }
+
+    function init() {
+      drawOutArc()
+      drawArc()
+      drawMinuteScale()
+      // drawHandScale()
+      // drawHand()
+      // drawMinuteHand()
+      // drawSecondHand()
+      // drawNumHand()
+      // window.requestAnimationFrame(init)
+    }
+    window.requestAnimationFrame(init)
   </script>
 </body>
 
