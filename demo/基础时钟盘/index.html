@@ -28,6 +28,7 @@
     const canvasWidth = canvas.width
     const canvasHeight = canvas.height
 
+    // 外圆
     function drawOutArc() {
       context.clearRect(0, 0, canvasWidth, canvasHeight)
       context.save()
@@ -36,29 +37,31 @@
       context.shadowOffsetX = 3
       context.shadowOffsetY = 3
       context.shadowBlur = 6
-      context.strokeStyle = 'rgba(100, 140, 230, 0.5)'
-      context.fillStyle = 'rgba(100, 140, 230, 0.5)'
+      context.strokeStyle = 'rgba(100, 140, 230, 0.3)'
+      context.fillStyle = 'rgba(100, 140, 230, 0.1)'
       context.translate(canvasWidth / 2, canvasHeight / 2)
-      context.arc(0, 0, 120, 0, Math.PI * 2)
+      context.arc(0, 0, 140, 0, Math.PI * 2)
       context.stroke()
       context.fill()
       context.closePath()
       context.restore()
     }
 
+    // 内圆
     function drawArc() {
       context.save()
       context.beginPath()
       context.translate(canvasWidth / 2, canvasHeight / 2)
-      context.arc(0, 0, 100, 0, Math.PI * 2)
-      context.strokeStyle = 'rgba(100, 140, 230, 0.5)'
+      context.arc(0, 0, 120, 0, Math.PI * 2)
+      context.strokeStyle = 'rgba(100, 140, 230, 0.1)'
       context.fillStyle = '#ffffff'
+      context.closePath()
       context.stroke()
       context.fill()
-      context.closePath()
       context.restore()
     }
 
+    // 时针刻度
     function drawHandScale() {
       context.beginPath()
       context.lineWidth = 3
@@ -69,36 +72,45 @@
       context.stroke()
       context.closePath()
 
-      context.beginPath()
-      context.arc(canvasWidth / 2, canvasHeight / 2, 100, 0, Math.PI * 2)
-      context.fillStyle = '#ffffff'
-      context.fill()
-      context.closePath()
-    }
-
-    function drawMinuteScale() {
       context.save()
       context.beginPath()
       context.translate(canvasWidth / 2, canvasHeight / 2)
-      for (let i = 0; i < 60; i++) {
-        context.arc(0, 0, 120, 6 * i * Math.PI / 180, (6 * i + 1) * Math.PI / 180)
+      context.arc(0, 0, 100, 0, Math.PI * 2)
+      context.fillStyle = '#ffffff'
+      context.fill()
+      context.closePath()
+      context.restore()
+    }
+
+    // 分刻度
+    function drawMinuteScale() {
+      context.beginPath()
+      context.strokeStyle = 'rgba(100, 140, 230, 0.3)'
+      for (var i = 0; i < 60; i++) {
+        context.moveTo(canvasWidth / 2, canvasHeight / 2)
+        context.arc(canvasWidth / 2, canvasHeight / 2, 120, 6 * i * Math.PI / 180, 6 * (i + 1) * Math.PI / 180, false)
       }
       context.stroke()
       context.closePath()
 
+      // 用一个圆去填充画的弧度
+      context.save()
       context.beginPath()
+      context.translate(canvasWidth / 2, canvasHeight / 2)
       context.arc(0, 0, 110, 0, Math.PI * 2)
       context.fillStyle = '#ffffff'
       context.fill()
       context.closePath()
-      context.stroke()
+      context.restore()
     }
 
+    // 时针
     function drawHand() {
       const date = new Date()
       const hours = date.getHours()
       context.beginPath()
       context.lineWidth = 2
+      context.strokeStyle = '#0066CC'
       context.moveTo(canvasWidth / 2, canvasHeight / 2)
       context.arc(canvasWidth / 2, canvasHeight / 2, 60, (-90 + hours * 30) * Math.PI / 180, (-90 + hours * 30) * Math
         .PI / 180, false)
@@ -106,11 +118,13 @@
       context.closePath()
     }
 
+    // 分针
     function drawMinuteHand() {
       const date = new Date()
       const minuTes = date.getMinutes()
       context.beginPath()
       context.lineWidth = 2
+      context.strokeStyle = '#99CC33'
       context.moveTo(canvasWidth / 2, canvasHeight / 2)
       context.arc(canvasWidth / 2, canvasHeight / 2, 70, (-90 + minuTes * 6) * Math.PI / 180, (-90 + minuTes * 6) * Math
         .PI / 180, false)
@@ -118,11 +132,13 @@
       context.closePath()
     }
 
+    // 秒针
     function drawSecondHand() {
       const date = new Date()
       const seconds = date.getSeconds()
       context.beginPath()
       context.lineWidth = 1
+      context.strokeStyle = '#FF6600'
       context.moveTo(canvasWidth / 2, canvasHeight / 2)
       context.arc(canvasWidth / 2, canvasHeight / 2, 80, (-90 + seconds * 6) * Math.PI / 180, (-90 + seconds * 6) * Math
         .PI / 180, false)
@@ -130,6 +146,7 @@
       context.closePath()
     }
 
+    // 数字
     function drawNumHand() {
       // 每小时的弧度值
       const singelArc = 2 * Math.PI / 12
@@ -139,8 +156,8 @@
       for (let i = 1; i < 13; i++) {
         const sin = Math.sin(singelArc * i)
         const cos = -Math.cos(singelArc * i)
-        context.fillStyle = 'black'
-        context.font = 'noraml 30px Calibri'
+        context.fillStyle = 'rgba(100, 140, 230, 1)'
+        context.font = '14px noraml Calibri'
         context.textAlign = 'center'
         context.textBaseline = 'middle'
         context.fillText(i, 90 * sin, 90 * cos)
@@ -153,12 +170,12 @@
       drawOutArc()
       drawArc()
       drawMinuteScale()
-      // drawHandScale()
-      // drawHand()
-      // drawMinuteHand()
-      // drawSecondHand()
-      // drawNumHand()
-      // window.requestAnimationFrame(init)
+      drawHandScale()
+      drawHand()
+      drawMinuteHand()
+      drawSecondHand()
+      drawNumHand()
+      window.requestAnimationFrame(init)
     }
     window.requestAnimationFrame(init)
   </script>
