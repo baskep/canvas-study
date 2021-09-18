@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Erasing with the Clipping Region</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #eeeeee;
+    }
+
+    #controls {
+      position: absolute;
+      left: 25px;
+      top: 25px;
+    }
+
+    #canvas {
+      background: #ffffff;
+      cursor: pointer;
+      -webkit-box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+      -moz-box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+      box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id='canvas' width='950' height='600'>
+    Canvas not supported
+  </canvas>
+
+  <div id='controls'>
+    Stroke color: <select id='strokeStyleSelect'>
+      <option value='red'>red</option>
+      <option value='green'>green</option>
+      <option value='blue'>blue</option>
+      <option value='orange'>orange</option>
+      <option value='cornflowerblue'>cornflowerblue</option>
+      <option value='goldenrod'>goldenrod</option>
+      <option value='navy' selected>navy</option>
+      <option value='purple'>purple</option>
+      <option value='purple'>purple</option>
+    </select>
+
+    Fill color: <select id='fillStyleSelect'>
+      <option value='rgba(255,0,0,0.5)'>semi-transparent red</option>
+      <option value='green'>green</option>
+      <option value='rgba(0,0,255,0.5)'>semi-transparent blue</option>
+      <option value='orange'>orange</option>
+      <option value='rgba(100,140,230,0.5)'>semi-transparent cornflowerblue</option>
+      <option value='goldenrod' selected>goldenrod</option>
+      <option value='navy'>navy</option>
+      <option value='purple'>purple</option>
+    </select>
+
+    Draw <input id='drawRadio' name='drawEraserRadios' type='radio' checked />
+    Erase <input id='eraserRadio' name='drawEraserRadios' type='radio' />
+
+    Eraser: <select id='eraserShapeSelect'>
+      <option value='circle'>circle</option>
+      <option value='square'>square</option>
+    </select>
+
+    Eraser width: <select id='eraserWidthSelect'>
+      <option value=25>25</option>
+      <option value=50>50</option>
+      <option value=75>75</option>
+      <option value=100>100</option>
+      <option value=125>125</option>
+      <option value=150>150</option>
+      <option value=175>175</option>
+      <option value=200>200</option>
+    </select>
+  </div>
+
+  <script src='example.js'></script>
+</body>
+<script>
+  /** @type {HTMLCanvasElement} */
+  const canvas = document.getElementById('canvas')
+  const context = canvas.getContext('2d')
+
+  const eraserLineWidth = 1
+  const eraserShadowStyle = 'blue'
+  const eraserStrokeStyle = 'rgb(0,0,255)'
+  const eraserShadowOffset = -5
+  const eraserShadowBlur = 20
+
+  const strokeStyleSelect = document.getElementById('strokeStyleSelect')
+  const fillStyleSelect = document.getElementById('fillStyleSelect')
+  const drawRadio = document.getElementById('drawRadio')
+  const eraserRadio = document.getElementById('eraserRadio')
+  const eraserShapeSelect = document.getElementById('eraserShapeSelect')
+  const eraserWidthSelect = document.getElementById('eraserWidthSelect')
+
+  let canvasImageData = null
+
+  let mousedown = {}
+  let lastInfo = {}
+  let rubberbandRect = {}
+
+  let dragging = false
+  let guidewires = true
+
+
+  // 画网格
+  function drawGrid() {
+    context.save()
+    context.strokeStyle = 'lightblue'
+    context.fillStyle = '#ffffff'
+    context.lineWidth = 0.5
+    context.fillRect(0, 0, context.canvas.width, context.canvas.height)
+
+    for (let i = 10 + 0.5; i < context.canvas.width; i += 10) {
+      context.beginPath()
+      context.moveTo(i, 0)
+      context.lineTo(i, context.canvas.height)
+      context.stroke()
+    }
+
+    for (let i = 10 + 0.5; i < context.canvas.height; i += 10) {
+      context.beginPath()
+      context.moveTo(0, i)
+      context.lineTo(context.canvas.width, i)
+      context.stroke()
+    }
+
+    context.restore()
+  }
+
+  function windowToCanvas(x, y) {
+    const canvasRect = canvas.getBoundingClientRect()
+    return {
+      x: x - canvasRect.left,
+      y: y - canvasRect.top,
+    };
+  }
+
+  function saveDrawingSurface() {
+    canvasImageData = context.getImageData(0, 0, canvas.width, canvas.height)
+  }
+
+  function restoreDrawingSurface() {
+    context.putImageData(canvasImageData, 0, 0)
+  }
+
+  function drawRubberbandShape({ clientX, clientY }) {
+
+    rubberbandRect.width = Math.abs(clientX - mousedown.x)
+    rubberbandRect.height = Math.abs(clientY - mousedown.y)
+
+    if (clientX > mousedown.x) {
+      rubberbandRect.left = mousedown.x
+    } else {
+      rubberbandRect.left = clientX
+    }
+
+    if (clientY > mousedown.y) {
+      rubberbandRect.top = mousedown.y
+    } else {
+      rubberbandRect.top = clientY
+    }
+
+    const angle = Math.atan(rubberbandRect.height / rubberbandRect.width)
+    let radius = rubberbandRect.height / Math.sin(angle)
+
+    if (mousedown.y === clientY) {
+      radius = Math.abs(clientX - mousedown.x)
+    }
+
+    context.beginPath()
+    context.arc(mousedown.x, mousedown.y, radius, 0, Math.PI * 2, false)
+    context.stroke()
+    context.fill()
+  }
+
+  function updateRubberband(...mouseInfo) {
+    drawRubberbandShape(...mouseInfo)
+  }
+
+
+  function setDrawPathForEraser({ clientX, clientY }) {
+    const eraserWidth = parseFloat(eraserWidthSelect.value)
+
+    context.beginPath()
+
+    if (eraserShapeSelect.value === 'circle') {
+      context.arc(clientX, clientY, eraserWidth / 2, 0, Math.PI * 2, false)
+    } else {
+      context.rect(clientX - eraserWidth / 2, clientY - eraserWidth / 2, eraserWidth, eraserWidth)
+    }
+    context.clip()
+  }
+
+  function setErasePathForEraser() {
+    const { x, y } = lastInfo
+    const eraserWidth = parseFloat(eraserWidthSelect.value)
+
+    context.beginPath()
+
+    if (eraserShapeSelect.value === 'circle') {
+      context.arc(x, y, eraserWidth / 2 + eraserLineWidth, 0, Math.PI * 2, false)
+    } else {
+      context.rect(
+        x - eraserWidth / 2 - eraserLineWidth,
+        y - eraserWidth / 2 - eraserLineWidth,
+        eraserWidth + eraserLineWidth * 2,
+        eraserWidth + eraserLineWidth * 2
+      )
+    }
+
+    context.clip()
+    context.closePath()
+  }
+
+  function setEraserAttributes() {
+    context.lineWidth = eraserLineWidth
+    context.shadowColor = eraserShadowStyle
+    context.shadowOffsetX = eraserShadowOffset
+    context.shadowOffsetY = eraserShadowOffset
+    context.shadowBlur = eraserShadowBlur
+    context.strokeStyle = eraserStrokeStyle
+  }
+
+  function eraseLast() {
+    context.save()
+
+    setErasePathForEraser()
+    drawGrid()
+
+    context.restore()
+  }
+
+  function drawEraser(mouseInfo) {
+    context.save()
+    setEraserAttributes()
+    setDrawPathForEraser(mouseInfo)
+    context.stroke()
+    context.restore()
+  }
+
+  canvas.onmouseup = function (e) {
+    const { clientX, clientY } = e
+    loc = windowToCanvas(clientX, clientY)
+    if (drawRadio.checked) {
+      restoreDrawingSurface()
+      updateRubberband(e)
+    }
+    if (eraserRadio.checked) {
+      eraseLast()
+    }
+    dragging = false
+  }
+
+  context.strokeStyle = strokeStyleSelect.value
+  context.fillStyle = fillStyleSelect.value
+
+  function bindEvent() {
+    canvas.addEventListener('mousedown', (e) => {
+      e.preventDefault()
+
+      const { clientX, clientY } = e
+
+      drawRadio.checked && saveDrawingSurface()
+
+      mousedown = {
+        x: clientX,
+        y: clientY
+      }
+
+      lastInfo = {
+        x: clientX,
+        y: clientY
+      }
+
+      dragging = true
+    })
+
+    canvas.addEventListener('mousemove', (e) => {
+      e.preventDefault()
+      if (dragging) {
+        const { clientX, clientY } = e
+        if (drawRadio.checked) {
+          updateRubberband(e)
+        } else {
+          eraseLast()
+          drawEraser(e)
+        }
+        lastInfo = {
+          x: clientX,
+          y: clientY
+        }
+      }
+    })
+  }
+
+  function init() {
+    drawGrid()
+    bindEvent()
+  }
+  init()
+</script>
+
+</html>
