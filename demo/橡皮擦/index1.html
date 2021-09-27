@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    #canvas {
+      border: 1px solid lightgray;
+      box-shadow: rgba(0, 0, 0, 0.3) 3px 3px 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas" width="800" height="500"></canvas>
+  <select name="" id="selectArea">
+    <option value="1">画圆</option>
+    <option value="2">橡皮擦</option>
+  </select>
+  <button id="reset-btn">重置</button>
+  <script>
+    /** @type {HTMLCanvasElement} */
+
+    const canvas = document.getElementById('canvas')
+    const selectArea = document.getElementById('selectArea')
+    const resetBtn = document.getElementById('reset-btn')
+    const context = canvas.getContext('2d')
+    const gridCount = 40
+    const canvasWidth = canvas.width
+    const canvasHeight = canvas.height
+
+    let drawingType = '1'
+    let isDrawing = false
+
+    // 画网格
+    function drawGrid() {
+      context.save()
+      context.strokeStyle = 'lightblue'
+      context.fillStyle = '#ffffff'
+      context.lineWidth = 0.5
+      context.fillRect(0, 0, canvasWidth, canvasHeight)
+      for (let i = 10 + 0.5; i < canvasWidth; i += 10) {
+        context.beginPath()
+        context.moveTo(i, 0)
+        context.lineTo(i, canvasHeight)
+        context.stroke()
+      }
+      for (let i = 10 + 0.5; i < canvasHeight; i += 10) {
+        context.beginPath()
+        context.moveTo(0, i)
+        context.lineTo(canvasWidth, i)
+        context.stroke()
+      }
+      context.restore()
+    }
+
+    function initStyle() {
+      context.strokeStyle = 'lightblue'
+      context.fillStyle = 'lightblue'
+    }
+
+    function drawCircle(clientX, clientY) {
+      const {
+        clientX: mousedownX,
+        clientY: mousedownY
+      } = mouseDownInfo
+      const width = Math.abs(clientX - mousedownX)
+      const height = Math.abs(clientY - mousedownY)
+      const tan = Math.atan(height / width)
+      const radius = height / Math.sin(tan)
+      context.beginPath()
+      context.arc(mousedownX, mousedownY, radius, 0, Math.PI * 2, false)
+      context.stroke()
+      context.fill()
+      context.closePath()
+    }
+
+
+    function clipCircle(clientX, clientY) {
+      context.save()
+      context.beginPath()
+      context.arc(clientX, clientY, 10, 0, Math.PI * 2, false)
+      context.clip()
+      context.closePath()
+      drawGrid()
+      context.restore()
+    }
+
+    function bindEvent() {
+      selectArea.addEventListener('change', (event) => {
+        const { target: { value } } = event
+        drawingType = value
+      })
+
+      canvas.addEventListener('mousedown', (event) => {
+        const { clientX, clientY } = event
+        isDrawing = true
+        mouseDownInfo = { clientX, clientY }
+      })
+
+      canvas.addEventListener('mousemove', (event) => {
+        const { clientX, clientY } = event
+        if (isDrawing) {
+          if (['1'].includes(drawingType)) {
+            drawCircle(clientX, clientY)
+          } else {
+            clipCircle(clientX, clientY)
+          }
+        }
+      })
+
+      canvas.addEventListener('mouseup', (event) => {
+        isDrawing = false
+      })
+
+      resetBtn.addEventListener('click', () => {
+        context.clearRect(0, 0, canvasWidth, canvasHeight)
+        drawGrid()
+      })
+
+    }
+
+    function init() {
+      initStyle()
+      drawGrid()
+      bindEvent()
+    }
+
+    init()
+
+  </script>
+</body>
+
+</html>
