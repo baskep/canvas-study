@@ -24,7 +24,6 @@
   <script>
     /** @type {HTMLCanvasElement} */
 
-    // todo 加上数字
     const canvas = document.getElementById('canvas')
     const context = canvas.getContext('2d')
     const gridCount = 40
@@ -33,16 +32,16 @@
 
     // 画网格
     function drawGrid() {
-      context.strokeStyle = 'lightblue'
-      context.fillStyle = '#ffffff'
+      context.strokeStyle = 'lightgray'
       context.lineWidth = 0.5
-      context.fillRect(0, 0, canvasWidth, canvasHeight)
+
       for (let i = 10 + 0.5; i < canvasWidth; i += 10) {
         context.beginPath()
         context.moveTo(i, 0)
         context.lineTo(i, canvasHeight)
         context.stroke()
       }
+
       for (let i = 10 + 0.5; i < canvasHeight; i += 10) {
         context.beginPath()
         context.moveTo(0, i)
@@ -51,49 +50,67 @@
       }
     }
 
-    // 画坐标系
-    function drawCoordinate() {
-      context.lineWidth = 2
-      context.strokeStyle = 'purple'
+    // 画坐标轴
+    function drawAxis() {
+      context.strokeStyle = 'blue'
+      context.lineWidth = 1.0
       context.beginPath()
-      context.moveTo(100, canvasHeight - 100)
-      context.lineTo(500, canvasHeight - 100)
+      context.moveTo(40, canvasHeight - 40)
+      context.lineTo(40, 40)
       context.stroke()
 
-      context.moveTo(100, canvasHeight - 100)
-      context.lineTo(100, canvasHeight - 450)
+      context.beginPath()
+      context.moveTo(40, canvasHeight - 40)
+      context.lineTo(canvasWidth - 40, canvasHeight - 40)
       context.stroke()
-      context.closePath()
     }
+
 
     // 画刻度线
     function drawScale() {
-      const offset = 20
-      context.beginPath()
       context.strokeStyle = 'pruple'
-      for (let i = 1; i <= 15; i++) {
+      context.lineWidth = 0.5
+      for (let i = 1; i <= 35; i++) {
         const scaleHeight = i % 5 === 0 ? 20 : 10
-        context.lineWidth = i % 5 === 0 ? 1 : 2
-        context.moveTo(100 + 20 * i, canvasHeight - 100 - scaleHeight / 2)
-        context.lineTo(100 + 20 * i, canvasHeight - 100 + scaleHeight / 2)
+        context.beginPath()
+        context.moveTo(40 + i * 20, canvasHeight - 40 - scaleHeight / 2)
+        context.lineTo(40 + i * 20, canvasHeight - 40 + scaleHeight / 2)
         context.stroke()
       }
 
-      for (let i = 1; i <= 15; i++) {
+      for (let i = 1; i <= 20; i++) {
         const scaleHeight = i % 5 === 0 ? 20 : 10
-        context.lineWidth = i % 5 === 0 ? 1 : 2
-        context.moveTo(100 - scaleHeight / 2, canvasHeight - 100 - 20 * i)
-        context.lineTo(100 + scaleHeight / 2, canvasHeight - 100 - 20 * i)
+        context.beginPath()
+        context.moveTo(40 - scaleHeight / 2, canvasHeight - 40 - i * 20)
+        context.lineTo(40 + scaleHeight / 2, canvasHeight - 40 - i * 20)
         context.stroke()
       }
+    }
 
-      context.closePath()
+    function drawAxisLabels() {
+      context.fillStyle = 'blue'
+      context.textAlign = 'center'
+      context.textBaseline = 'top'
+      for (let i = 0; i <= 35; ++i) {
+        if (i % 5 === 0) {
+          context.fillText(i, 40 + i * 20,  canvasHeight - 40 + 15)
+        }
+      }
+
+      context.textAlign = 'right'
+      context.textBaseline = 'middle'
+      for (let i = 0; i <= 20; ++i) {
+        if (i % 5 === 0) {
+          context.fillText(i, 40 - 20,  canvasHeight - 40 - i * 20)
+        }
+      }
     }
 
     function init() {
       drawGrid()
-      drawCoordinate()
+      drawAxis()
       drawScale()
+      drawAxisLabels()
     }
 
     init()
